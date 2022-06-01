@@ -1,13 +1,18 @@
 package com.DEMOJWT.demo.controller;
 
 import com.DEMOJWT.demo.dto.User;
+import com.DEMOJWT.demo.services.UserService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 import java.util.Date;
 import java.util.List;
@@ -16,15 +21,25 @@ import java.util.stream.Collectors;
 @RestController
 public class UserController {
 
-    @PostMapping("user")
-    public User login(@RequestParam("user") String username, @RequestParam("password") String pwd) {
+    @Autowired
+    UserService servicioUsuario;
 
+    @GetMapping("/user")
+    public Mono<ResponseEntity<User>> login(@RequestParam("user") String username, @RequestParam("pwd") String pwd) {
         String token = getJWTToken(username);
-        User user = new User();
-        user.setUser(username);
-        user.setToken(token);
-        return user;
 
+        return servicioUsuario.obtenerUsuario(username, pwd)
+                .filter(elemento -> {
+                    if (elemento.getUser().equalsIgnoreCase(username) && elemento.getPwd().equalsIgnoreCase(pwd)) {
+                        elemento.setToken(token);
+                        return true;
+                    }
+                   return false;
+                })
+                .map(element -> ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(element))
+                .switchIfEmpty(Mono.error(new RuntimeException("El usuario no existe vuelva mas tarde")));
     }
 
     private String getJWTToken(String username) {

@@ -5,10 +5,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.UUID;
 
-@Document(collation = "usuarios")
+@Document(collection = "usuarios")
 public class User {
     @Id
-    private Long id;
+    private String id;
     private String user;
     private String pwd;
     private String token;
@@ -16,7 +16,7 @@ public class User {
     public User(){
 
     }
-    public User(Long id, String user, String pwd, String token) {
+    public User(String id, String user, String pwd, String token) {
         this.id = id;
         this.user = user;
         this.pwd = pwd;
@@ -31,11 +31,11 @@ public class User {
         this.user = user;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
